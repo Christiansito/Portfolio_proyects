@@ -1,0 +1,104 @@
+---
+title: "Cyclystic Data analysis capstone proyect"
+author: "Christian Calvanese"
+date: "22, July 2022"
+output: 
+  html_document:default
+  pdf_document:default
+  word_document:default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Background of the dataset company
+
+In 2016, Cyclistic launched a successful bike-share offering. Since
+then, the program has grown to a fleet of 5,824 bicycles that are
+geotracked and locked into a network of 692 stations across Chicago. The
+bikes can be unlocked from one station and returned to any other station
+in the system anytime.
+
+There are two types of cyclist, those who purchase casual tickets and
+those who purchase annual memberships. The marketing team believes that
+maximizing the number of annual members will be key to future growth.
+Rather than creating a marketing campaign that targets all-new
+customers, there is a very good chance to convert casual riders into
+members.
+
+# Installing requiered packages
+
+```{r}
+install.packages("tidyverse", "janitor", "lubridate")
+library(tidyverse) 
+library(janitor) 
+library(lubridate)
+install.packages("janitor")
+```
+
+After the package installation we proceed to merge the data of a full year so we can clean it later. 
+This is the data source:
+##Data Source: \## <http://divvy-tripdata.s3.amazonaws.com/index.html>
+
+
+```{r}
+m1 <-read.csv("./cyclistic_data/202101-divvy-tripdata.csv") 
+m2 <-read.csv("./cyclistic_data/202102-divvy-tripdata.csv") 
+m3 <-read.csv("./cyclistic_data/202103-divvy-tripdata.csv") 
+m4 <-read.csv("./cyclistic_data/202104-divvy-tripdata.csv") 
+m5 <-read.csv("./cyclistic_data/202105-divvy-tripdata.csv")
+m6 <-read.csv("./cyclistic_data/202106-divvy-tripdata.csv") 
+m7 <-read.csv("./cyclistic_data/202107-divvy-tripdata.csv") 
+m8 <-read.csv("./cyclistic_data/202108-divvy-tripdata.csv") 
+m9 <-read.csv("./cyclistic_data/202109-divvy-tripdata.csv") 
+m10 <-read.csv("./cyclistic_data/202110-divvy-tripdata.csv") 
+m11 <-read.csv("./cyclistic_data/202111-divvy-tripdata.csv") 
+m12 <-read.csv("./cyclistic_data/202112-divvy-tripdata.csv")
+```
+
+After we assign each month to a variable we combine and check for empty rows or columns,
+we remove them and check if they are significative to the dataset total datapoints.
+
+
+```{r}
+bike_rides <- rbind(m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12)
+dim(bike_rides) 
+bike_rides <- janitor::remove_empty(bike_rides, which = c("cols")) 
+bike_rides <- janitor::remove_empty(bike_rides, which =c("rows")) 
+dim(bike_rides)
+```
+
+Now that we have our merged data we check if the column datapoints are in line with
+the datatype, if they are not we parse them.
+
+```{r}
+##parsing Strings to POSIXcl
+bike_rides$started_at <- ymd_hms(bike_rides$started_at)
+bike_rides$ended_at <- ymd_hms(bike_rides$ended_at)
+```
+
+POSIXcl is a date format in R.
+
+```{r}
+##calculating difference of time in minutes
+bike_rides$travel_time <- difftime(bike_rides$ended_at,
+bike_rides$started_at, units = "mins") %>%  round 
+
+##getting weekdays 
+bike_rides$day_of_ride <- weekdays(bike_rides$started_at)
+```
+
+Last but not least we format the station IDs and we save it for Tableau viz.
+
+```{r}
+##formating the stations IDs from STRING to Double
+bike_rides$start_station_id <- as.double(bike_rides$start_station_id)
+bike_rides$end_station_id <- as.double(bike_rides$end_station_id)
+
+##saving the data frame to work with tableau 
+save(bike_rides,file="bike_rides.Rda")
+```
+
+
+
